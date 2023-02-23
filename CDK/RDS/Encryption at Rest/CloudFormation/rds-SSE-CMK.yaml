@@ -1,0 +1,539 @@
+Resources:
+  myrdskmscmkkey3BC3B641:
+    Type: AWS::KMS::Key
+    Properties:
+      KeyPolicy:
+        Statement:
+          - Action: kms:*
+            Effect: Allow
+            Principal:
+              AWS:
+                Fn::Join:
+                  - ""
+                  - - "arn:"
+                    - Ref: AWS::Partition
+                    - ":iam::"
+                    - Ref: AWS::AccountId
+                    - :root
+            Resource: "*"
+        Version: "2012-10-17"
+      Description: Customer managed CMK key for encrypting RDS instance
+      EnableKeyRotation: false
+      PendingWindowInDays: 7
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: CdkProjectStack/my-rds-kms-cmk-key/Resource
+  myrdskmscmkkeyAlias68A77676:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/myrdskmscmkkey
+      TargetKeyId:
+        Fn::GetAtt:
+          - myrdskmscmkkey3BC3B641
+          - Arn
+    Metadata:
+      aws:cdk:path: CdkProjectStack/my-rds-kms-cmk-key/Alias/Resource
+  MyvpcBBC695E7:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: CdkProjectStack/Myvpc
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/Resource
+  MyvpcPublicSubnet1Subnet672D64CD:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: MyvpcBBC695E7
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      CidrBlock: 10.0.0.0/18
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: Public
+        - Key: aws-cdk:subnet-type
+          Value: Public
+        - Key: Name
+          Value: CdkProjectStack/Myvpc/PublicSubnet1
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PublicSubnet1/Subnet
+  MyvpcPublicSubnet1RouteTable717B3BD3:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: MyvpcBBC695E7
+      Tags:
+        - Key: Name
+          Value: CdkProjectStack/Myvpc/PublicSubnet1
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PublicSubnet1/RouteTable
+  MyvpcPublicSubnet1RouteTableAssociation17201056:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: MyvpcPublicSubnet1RouteTable717B3BD3
+      SubnetId:
+        Ref: MyvpcPublicSubnet1Subnet672D64CD
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PublicSubnet1/RouteTableAssociation
+  MyvpcPublicSubnet1DefaultRouteB8D430F7:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: MyvpcPublicSubnet1RouteTable717B3BD3
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: MyvpcIGW8D4258B2
+    DependsOn:
+      - MyvpcVPCGW575E9958
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PublicSubnet1/DefaultRoute
+  MyvpcPublicSubnet1EIP00C60C47:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: CdkProjectStack/Myvpc/PublicSubnet1
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PublicSubnet1/EIP
+  MyvpcPublicSubnet1NATGatewayE776B4DC:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId:
+        Ref: MyvpcPublicSubnet1Subnet672D64CD
+      AllocationId:
+        Fn::GetAtt:
+          - MyvpcPublicSubnet1EIP00C60C47
+          - AllocationId
+      Tags:
+        - Key: Name
+          Value: CdkProjectStack/Myvpc/PublicSubnet1
+    DependsOn:
+      - MyvpcPublicSubnet1DefaultRouteB8D430F7
+      - MyvpcPublicSubnet1RouteTableAssociation17201056
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PublicSubnet1/NATGateway
+  MyvpcPublicSubnet2SubnetC7C24C2F:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: MyvpcBBC695E7
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ""
+      CidrBlock: 10.0.64.0/18
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: Public
+        - Key: aws-cdk:subnet-type
+          Value: Public
+        - Key: Name
+          Value: CdkProjectStack/Myvpc/PublicSubnet2
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PublicSubnet2/Subnet
+  MyvpcPublicSubnet2RouteTableD7DA1217:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: MyvpcBBC695E7
+      Tags:
+        - Key: Name
+          Value: CdkProjectStack/Myvpc/PublicSubnet2
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PublicSubnet2/RouteTable
+  MyvpcPublicSubnet2RouteTableAssociationEC662515:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: MyvpcPublicSubnet2RouteTableD7DA1217
+      SubnetId:
+        Ref: MyvpcPublicSubnet2SubnetC7C24C2F
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PublicSubnet2/RouteTableAssociation
+  MyvpcPublicSubnet2DefaultRoute246DC34D:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: MyvpcPublicSubnet2RouteTableD7DA1217
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: MyvpcIGW8D4258B2
+    DependsOn:
+      - MyvpcVPCGW575E9958
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PublicSubnet2/DefaultRoute
+  MyvpcPublicSubnet2EIP078B3AC6:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: CdkProjectStack/Myvpc/PublicSubnet2
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PublicSubnet2/EIP
+  MyvpcPublicSubnet2NATGatewayDFE67A06:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId:
+        Ref: MyvpcPublicSubnet2SubnetC7C24C2F
+      AllocationId:
+        Fn::GetAtt:
+          - MyvpcPublicSubnet2EIP078B3AC6
+          - AllocationId
+      Tags:
+        - Key: Name
+          Value: CdkProjectStack/Myvpc/PublicSubnet2
+    DependsOn:
+      - MyvpcPublicSubnet2DefaultRoute246DC34D
+      - MyvpcPublicSubnet2RouteTableAssociationEC662515
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PublicSubnet2/NATGateway
+  MyvpcPrivateSubnet1Subnet7592E0A5:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: MyvpcBBC695E7
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ""
+      CidrBlock: 10.0.128.0/18
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: Private
+        - Key: aws-cdk:subnet-type
+          Value: Private
+        - Key: Name
+          Value: CdkProjectStack/Myvpc/PrivateSubnet1
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PrivateSubnet1/Subnet
+  MyvpcPrivateSubnet1RouteTable904D427F:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: MyvpcBBC695E7
+      Tags:
+        - Key: Name
+          Value: CdkProjectStack/Myvpc/PrivateSubnet1
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PrivateSubnet1/RouteTable
+  MyvpcPrivateSubnet1RouteTableAssociation1F5D057D:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: MyvpcPrivateSubnet1RouteTable904D427F
+      SubnetId:
+        Ref: MyvpcPrivateSubnet1Subnet7592E0A5
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PrivateSubnet1/RouteTableAssociation
+  MyvpcPrivateSubnet1DefaultRouteC984969A:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: MyvpcPrivateSubnet1RouteTable904D427F
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: MyvpcPublicSubnet1NATGatewayE776B4DC
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PrivateSubnet1/DefaultRoute
+  MyvpcPrivateSubnet2Subnet941DBDFE:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: MyvpcBBC695E7
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ""
+      CidrBlock: 10.0.192.0/18
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: aws-cdk:subnet-name
+          Value: Private
+        - Key: aws-cdk:subnet-type
+          Value: Private
+        - Key: Name
+          Value: CdkProjectStack/Myvpc/PrivateSubnet2
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PrivateSubnet2/Subnet
+  MyvpcPrivateSubnet2RouteTableB3A471E9:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: MyvpcBBC695E7
+      Tags:
+        - Key: Name
+          Value: CdkProjectStack/Myvpc/PrivateSubnet2
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PrivateSubnet2/RouteTable
+  MyvpcPrivateSubnet2RouteTableAssociation546337D8:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: MyvpcPrivateSubnet2RouteTableB3A471E9
+      SubnetId:
+        Ref: MyvpcPrivateSubnet2Subnet941DBDFE
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PrivateSubnet2/RouteTableAssociation
+  MyvpcPrivateSubnet2DefaultRouteBC234F84:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: MyvpcPrivateSubnet2RouteTableB3A471E9
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: MyvpcPublicSubnet2NATGatewayDFE67A06
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/PrivateSubnet2/DefaultRoute
+  MyvpcIGW8D4258B2:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: CdkProjectStack/Myvpc
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/IGW
+  MyvpcVPCGW575E9958:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: MyvpcBBC695E7
+      InternetGatewayId:
+        Ref: MyvpcIGW8D4258B2
+    Metadata:
+      aws:cdk:path: CdkProjectStack/Myvpc/VPCGW
+  myCMKEncryptedRDSInstanceSubnetGroup16370648:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for myCMKEncryptedRDSInstance database
+      SubnetIds:
+        - Ref: MyvpcPrivateSubnet1Subnet7592E0A5
+        - Ref: MyvpcPrivateSubnet2Subnet941DBDFE
+    Metadata:
+      aws:cdk:path: CdkProjectStack/myCMKEncryptedRDSInstance/SubnetGroup/Default
+  myCMKEncryptedRDSInstanceSecurityGroup8B385504:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for myCMKEncryptedRDSInstance database
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      VpcId:
+        Ref: MyvpcBBC695E7
+    Metadata:
+      aws:cdk:path: CdkProjectStack/myCMKEncryptedRDSInstance/SecurityGroup/Resource
+  CdkProjectStackmyCMKEncryptedRDSInstanceSecretF947037F3fdaad7efa858a3daf9490cf0a702aeb:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description:
+        Fn::Join:
+          - ""
+          - - "Generated by the CDK for stack: "
+            - Ref: AWS::StackName
+      GenerateSecretString:
+        ExcludeCharacters: " %+~`#$&*()|[]{}:;<>?!'/@\"\\"
+        GenerateStringKey: password
+        PasswordLength: 30
+        SecretStringTemplate: '{"username":"postgres"}'
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: CdkProjectStack/myCMKEncryptedRDSInstance/Secret/Resource
+  myCMKEncryptedRDSInstanceSecretAttachmentDC3E5CD9:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId:
+        Ref: CdkProjectStackmyCMKEncryptedRDSInstanceSecretF947037F3fdaad7efa858a3daf9490cf0a702aeb
+      TargetId:
+        Ref: myCMKEncryptedRDSInstanceD1B8834E
+      TargetType: AWS::RDS::DBInstance
+    Metadata:
+      aws:cdk:path: CdkProjectStack/myCMKEncryptedRDSInstance/Secret/Attachment/Resource
+  myCMKEncryptedRDSInstanceD1B8834E:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: "100"
+      AllowMajorVersionUpgrade: false
+      AutoMinorVersionUpgrade: true
+      BackupRetentionPeriod: 0
+      CopyTagsToSnapshot: true
+      DBInstanceClass: db.t3.micro
+      DBName: mycmkencryptedrds
+      DBSubnetGroupName:
+        Ref: myCMKEncryptedRDSInstanceSubnetGroup16370648
+      DeleteAutomatedBackups: true
+      DeletionProtection: false
+      Engine: postgres
+      EngineVersion: "13.7"
+      KmsKeyId:
+        Fn::GetAtt:
+          - myrdskmscmkkey3BC3B641
+          - Arn
+      MasterUsername: postgres
+      MasterUserPassword:
+        Fn::Join:
+          - ""
+          - - "{{resolve:secretsmanager:"
+            - Ref: CdkProjectStackmyCMKEncryptedRDSInstanceSecretF947037F3fdaad7efa858a3daf9490cf0a702aeb
+            - :SecretString:password::}}
+      MaxAllocatedStorage: 115
+      MultiAZ: false
+      PubliclyAccessible: false
+      StorageEncrypted: true
+      StorageType: gp2
+      VPCSecurityGroups:
+        - Fn::GetAtt:
+            - myCMKEncryptedRDSInstanceSecurityGroup8B385504
+            - GroupId
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: CdkProjectStack/myCMKEncryptedRDSInstance/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/12R3WrDMAyFn2X3jrcWVthlf0YJgy00pbdDcdTObWIXW24JIe8+O16TsCsdfT6SZXnOF6/85QnuNhHlJalkwducQFyYR9/tpba8/cCGrY8qhGUlwYakFx1DMeft4SoCOmRrlrmikiJ3hUIKbFQ77Qj3UFQ48pEtrdVCAkmtBnMQ72kWwifQFgjv0LDMyJuXY+NUERqvH4Y4yV+2JP+WnxoVsRyFM5KardHu2s8wBR0zpX/qBggKsJgqS6AEsnjPULNZTcHD7TuZOMxm9ajsmO2prUHBCQ1v45XBGMMezAlpMuFg+H/SdWyHVjsj+qV8Obq6uNQJXWtVyrDAjildIj/b59tswWdv/nvPVsrEOEWyRr6L8RcshtLx+gEAAA==
+    Metadata:
+      aws:cdk:path: CdkProjectStack/CDKMetadata/Default
+    Condition: CDKMetadataAvailable
+Outputs:
+  keyarn:
+    Description: Customer managed CMK key ARN for encrypting RDS
+    Value:
+      Fn::GetAtt:
+        - myrdskmscmkkey3BC3B641
+        - Arn
+  dbEndpoint:
+    Description: Database endpoint
+    Value:
+      Fn::GetAtt:
+        - myCMKEncryptedRDSInstanceD1B8834E
+        - Endpoint.Address
+  secretName:
+    Description: The name of the secret that stores the password of the postgres user
+    Value:
+      Fn::Join:
+        - "-"
+        - - Fn::Select:
+              - 0
+              - Fn::Split:
+                  - "-"
+                  - Fn::Select:
+                      - 6
+                      - Fn::Split:
+                          - ":"
+                          - Ref: CdkProjectStackmyCMKEncryptedRDSInstanceSecretF947037F3fdaad7efa858a3daf9490cf0a702aeb
+          - Fn::Select:
+              - 1
+              - Fn::Split:
+                  - "-"
+                  - Fn::Select:
+                      - 6
+                      - Fn::Split:
+                          - ":"
+                          - Ref: CdkProjectStackmyCMKEncryptedRDSInstanceSecretF947037F3fdaad7efa858a3daf9490cf0a702aeb
+Conditions:
+  CDKMetadataAvailable:
+    Fn::Or:
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - af-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ca-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-northwest-1
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-3
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - me-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - sa-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-2
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-2
+Parameters:
+  BootstrapVersion:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cdk-bootstrap/hnb659fds/version
+    Description: Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]
+Rules:
+  CheckBootstrapVersion:
+    Assertions:
+      - Assert:
+          Fn::Not:
+            - Fn::Contains:
+                - - "1"
+                  - "2"
+                  - "3"
+                  - "4"
+                  - "5"
+                - Ref: BootstrapVersion
+        AssertDescription: CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.
+
